@@ -1,7 +1,8 @@
 #include <SDL3/SDL.h>
 
-#include "common.h"
-#include "game.h"
+#include "common.hpp"
+#include "render.hpp"
+#include "game.hpp"
 
 int main()
 {
@@ -12,7 +13,9 @@ int main()
     SDL_Event e;
     int isRunning = 1;
 
-    InitGame(surface);
+    RenderInit(surface);
+
+    Game game;
     while (isRunning)
     {
         while (SDL_PollEvent(&e))
@@ -21,7 +24,7 @@ int main()
                 isRunning = 0;
         }
 
-        UpdateGame();
+        game.Update();
         SDL_UpdateWindowSurface(window);
     }
 

@@ -1,8 +1,8 @@
 #include <SDL3/SDL.h>
 
-#include "common.h"
-#include "render.h"
-#include "board.h"
+#include "common.hpp"
+#include "render.hpp"
+#include "board.hpp"
 
 SDL_Surface *surface;
 
@@ -48,13 +48,13 @@ void DrawBlock(int x, int y, BlockState bs)
     SDL_FillSurfaceRect(surface, &fullSquare, bs);
 }
 
-void DrawBoard()
+void DrawBoard(GameBoard &board)
 {
     for (int y = 0; y < GRID_HEIGHT; y++)
     {
         for (int x = 0; x < GRID_WIDTH; x++)
         {
-            DrawBlock(x, y, board_GetRowAt(y)[x]);
+            DrawBlock(x, y, board[y][x]);
         }
     }
 }
@@ -64,7 +64,7 @@ void DrawPlayerPiece(int x, int y, TetrisPiece *piece)
     // X and Y are origin point of the "rectangle" of the piece
     for (int i = 0; i < 4; i++)
     {
-        DrawBlock(x + piece->blocks[i][0], y - piece->blocks[i][1], piece->color);
+        DrawBlock(x + piece->blocks[i][0], y - piece->blocks[i][1], (BlockState) piece->color);
     }
 }
 

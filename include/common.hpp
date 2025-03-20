@@ -29,7 +29,7 @@
 #define COLOR_YELLOW 0x00FFFF0A
 #define COLOR_VIOLET 0x00FF0AFF
 
-typedef enum {
+enum BlockState : Uint32 {
     BS_EMPTY = 0,
     BS_BLUE = COLOR_BLUE,
     BS_DEEP_BLUE = COLOR_DEEP_BLUE,
@@ -38,13 +38,20 @@ typedef enum {
     BS_GREEN = COLOR_GREEN,
     BS_YELLOW = COLOR_YELLOW,
     BS_VIOLET = COLOR_VIOLET
-} BlockState;
+};
 
-typedef struct {
+struct TetrisPiece {
     
     Uint32 color;
     int blocks[4][2];
-} TetrisPiece;
+};
+
+struct InputState {
+    bool left;
+    bool right;
+    bool up;
+    bool down;
+};
 
 static const TetrisPiece PIECES[PIECE_COUNT] = {
     {

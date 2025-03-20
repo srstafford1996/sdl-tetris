@@ -1,9 +1,15 @@
-#include "common.h"
+#include "common.hpp"
+#include "board.hpp"
 
-BlockState blocks[GRID_HEIGHT][GRID_WIDTH];
-short row_indexes[GRID_HEIGHT];
+void _swap(short *a, short *b)
+{
+    short temp = *a;
+    *a = *b;
+    *b = temp;
+}
 
-void InitBoard()
+
+GameBoard::GameBoard()
 {
     for(int i = 0; i < GRID_HEIGHT; i++)
     {
@@ -13,14 +19,17 @@ void InitBoard()
     }
 }
 
-void _swap(short *a, short *b)
+BlockState* GameBoard::GetRow(int rowIndex)
 {
-    short temp = *a;
-    *a = *b;
-    *b = temp;
+    return blocks[row_indexes[rowIndex]];
 }
 
-void board_DeleteRow(int rowIndex)
+BlockState* GameBoard::operator[](int rowIndex)
+{
+    return blocks[row_indexes[rowIndex]];
+}
+
+void GameBoard::DeleteRow(int rowIndex)
 {
     // Clear line and put it at the top
     for (int i = 0; i < GRID_WIDTH; i++)
@@ -34,12 +43,7 @@ void board_DeleteRow(int rowIndex)
     }
 }
 
-BlockState* board_GetRowAt(int rowIndex)
-{
-    return blocks[row_indexes[rowIndex]];
-}
-
-bool board_RowIsFull(int rowIndex)
+bool GameBoard::RowIsFull(int rowIndex)
 {
     for (int i = 0; i < GRID_WIDTH; i++)
         if (blocks[ row_indexes[rowIndex] ][i] == BS_EMPTY) return false;
