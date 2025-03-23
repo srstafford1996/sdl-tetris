@@ -11,6 +11,9 @@ class Player
 {
     bool pieceShouldPlace();
     void movePieceDown();
+
+    bool checkCollision(int x, int y);
+    void spawnNewPiece();
     
     void moveDown();
     void moveLateral(int direction);
@@ -18,6 +21,10 @@ class Player
 
 public:
     int x, y;
+    int nextPieceIndex;
+    int nextPieces[FUTURE_PIECES_COUNT];
+
+    bool overflow;
     GameBoard board;
     TetrisPiece currentPiece;
 
@@ -27,6 +34,7 @@ public:
     Uint32 lastMoveDownTime;
 
     void Update(InputState is);
+    void Reset();
 
     Player();
 };

@@ -11,7 +11,7 @@ void _swap(short *a, short *b)
 
 GameBoard::GameBoard()
 {
-    for(int i = 0; i < GRID_HEIGHT; i++)
+    for(int i = 0; i < GRID_HEIGHT + 4; i++)
     {
         row_indexes[i] = i;
         for(int j = 0; j < GRID_WIDTH; j++)
@@ -27,6 +27,16 @@ BlockState* GameBoard::GetRow(int rowIndex)
 BlockState* GameBoard::operator[](int rowIndex)
 {
     return blocks[row_indexes[rowIndex]];
+}
+
+void GameBoard::ClearBoard()
+{
+    for(int i = 0; i < GRID_HEIGHT + 4; i++)
+    {
+        row_indexes[i] = i;
+        for(int j = 0; j < GRID_WIDTH; j++)
+            blocks[i][j] = BS_EMPTY;
+    }
 }
 
 void GameBoard::DeleteRow(int rowIndex)

@@ -59,6 +59,49 @@ void DrawBoard(GameBoard &board)
     }
 }
 
+void DrawSidebar(int *nextPieceArr, int nextPieceArrIndex)
+{
+    // Clear sidebar
+    SDL_Rect sidebar = {
+        GRID_VIEW_WIDTH + GRID_X_OFFSET + SIDEBAR_OFFSET,
+        0,
+        WINDOW_WIDTH - (GRID_VIEW_WIDTH + GRID_X_OFFSET + SIDEBAR_OFFSET),
+        WINDOW_HEIGHT
+    };
+    SDL_FillSurfaceRect(surface, &sidebar, BACKGROUND_COLOR);
+
+    int pieceX = GRID_VIEW_WIDTH + GRID_X_OFFSET + SIDEBAR_OFFSET;
+    int pieceY = NEXT_PIECE_PADDING;
+
+    SDL_Rect fullSquare = {
+        pieceX,
+        pieceY, 
+        SIDEBAR_BLOCK_WIDTH,
+        SIDEBAR_BLOCK_HEIGHT
+    };
+
+    int count = 0;
+    int i = nextPieceArrIndex;
+    while (count < FUTURE_PIECES_COUNT)
+    {
+        for (int k = 0; k < 4; k++)
+        {
+            fullSquare.x = pieceX + PIECES[ nextPieceArr[i] ].blocks[k][0] * SIDEBAR_BLOCK_WIDTH;
+            fullSquare.y = pieceY + PIECES[ nextPieceArr[i] ].blocks[k][1] * SIDEBAR_BLOCK_HEIGHT;
+
+            SDL_FillSurfaceRect(surface, &fullSquare, PIECES[ nextPieceArr[i] ].color);
+        }
+
+        pieceY += NEXT_PIECE_PADDING + SIDEBAR_BLOCK_HEIGHT * PIECES[ nextPieceArr[i] ].height;
+        count++;
+        
+        if (i < FUTURE_PIECES_COUNT - 1)
+            i++;
+        else
+            i = 0;
+    }
+}
+
 void DrawPlayerPiece(int x, int y, TetrisPiece *piece)
 {
     // X and Y are origin point of the "rectangle" of the piece
