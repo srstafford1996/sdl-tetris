@@ -12,18 +12,14 @@
 
 Game::Game()
 {
-    SDL_srand(time(NULL));
-
+    LoadBlockTextures();
+    
     player = new Player();
-
-    DrawBoard(player->board);
-    DrawSidebar(player->nextPieces, player->nextPieceIndex);
-    DrawPlayerPiece(player->x, player->y, &player->currentPiece);
-
 }
 
 Game::~Game()
 {
+    DestroyBlockTextures();
     delete player;
 }
 
@@ -32,23 +28,23 @@ Game::~Game()
 // So this game needs to draw different types of blocks
 void Game::Update()
 {
-    ClearPlayerPiece(player->x, player->y, &player->currentPiece); 
     
     Uint64 tickStart = SDL_GetTicks();
     
     SDL_PumpEvents();
     const bool *keys = SDL_GetKeyboardState(NULL);
 
-    InputState s = {keys[SDL_SCANCODE_LEFT], keys[SDL_SCANCODE_RIGHT], keys[SDL_SCANCODE_UP], keys[SDL_SCANCODE_DOWN]};
+    InputState s = {keys[SDL_SCANCODE_LEFT], keys[SDL_SCANCODE_RIGHT], keys[SDL_SCANCODE_UP], keys[SDL_SCANCODE_DOWN], keys[SDL_SCANCODE_SPACE], keys[SDL_SCANCODE_LSHIFT]};
     player->Update(s);
 
     if (player->overflow)
     {
-        printf("Resetting");
         SDL_Delay(200);
         SDL_Delay(200);
         player->Reset();
     }
 
-    DrawPlayerPiece(player->x, player->y, &player->currentPiece);
+    DrawBoard(&player->board);
+    DrawSidebar(player);
+    DrawPlayerPiece(player);
 }

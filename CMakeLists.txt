@@ -29,9 +29,11 @@ set(SOURCE_FILES
     src/player.cpp
 )
 include_directories(include)
+
 # Create executable
 add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES})
 target_link_libraries(${PROJECT_NAME} SDL3::SDL3) 
+
 # Build the exe in the base project folder
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
@@ -44,5 +46,10 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${SDL3_DLL_PATH}"
         "${CMAKE_SOURCE_DIR}/bin"
-   COMMENT "Copying SDL3 DLLs to output directory"
+    COMMENT "Copying SDL3 DLLs to output directory"
+
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/textures"
+        "${CMAKE_SOURCE_DIR}/bin/textures"
+
 )

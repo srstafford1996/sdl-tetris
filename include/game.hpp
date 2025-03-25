@@ -5,9 +5,9 @@
 
 class Game
 {
+public:
     Player *player;
 
-public:
     Game();
     ~Game();
     

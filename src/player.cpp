@@ -7,33 +7,35 @@
 #include "render.hpp"
 
 
-
-Player::Player() : lastRotateTime(0), lastMoveTime(0), lastFallTime(0), lastMoveDownTime(0), x(4), y(GRID_HEIGHT - 1), nextPieceIndex(0), overflow(0)
-{
-    currentPiece = PIECES[SDL_rand(PIECE_COUNT)];
-
-    for (int i = 0; i < FUTURE_PIECES_COUNT; i++)
-        nextPieces[i] = SDL_rand(PIECE_COUNT);
-}
-
-bool Player::pieceShouldPlace()
+bool pieceShouldPlace(int x, int y, TetrisPiece *currentPiece, GameBoard *board)
 {
     for (int i = 0; i < 4; i++)
     {
-        int nextY = y - currentPiece.blocks[i][1] - 1;
-        int nextX = x + currentPiece.blocks[i][0];
+        int nextY = y - currentPiece->blocks[i][1] - 1;
+        int nextX = x + currentPiece->blocks[i][0];
 
-        if (nextY < 0 || board[nextY][nextX] != BS_EMPTY)
+        if (nextY < 0 || board->GetRow(nextY)[nextX] != BS_EMPTY)
             return true;
     }
 
     return false;
 }
 
+Player::Player() : lastRotateTime(0), lastMoveTime(0), lastFallTime(0), lastMoveDownTime(0), x(4),
+    y(GRID_HEIGHT - 1), nextPieceIndex(0), overflow(0), swapUsed(0), swapPiece(-1)
+{
+    currentPieceIndex = SDL_rand(PIECE_COUNT);
+    currentPiece = PIECES[currentPieceIndex];
+
+    for (int i = 0; i < FUTURE_PIECES_COUNT; i++)
+        nextPieces[i] = SDL_rand(PIECE_COUNT);
+}
+
+
 
 void Player::moveDown()
 {
-    if (pieceShouldPlace())
+    if (pieceShouldPlace(x, y, &currentPiece, &board))
     {
         // Place piece and check rows
         int bottomRow = -1;
@@ -70,8 +72,9 @@ void Player::moveDown()
             overflow = true;
             return;
         }
+        swapUsed = false;
+
         spawnNewPiece();
-        DrawBoard(board);
     }
     else
     {
@@ -95,7 +98,9 @@ bool Player::checkCollision(int x, int y)
 
 void Player::spawnNewPiece()
 {
-    currentPiece = PIECES[ nextPieces[nextPieceIndex] ];
+
+    currentPieceIndex = nextPieces[nextPieceIndex];
+    currentPiece = PIECES[ currentPieceIndex ];
     nextPieces[nextPieceIndex] = SDL_rand(PIECE_COUNT);
     
     if (nextPieceIndex == FUTURE_PIECES_COUNT - 1)
@@ -109,8 +114,6 @@ void Player::spawnNewPiece()
     while (checkCollision(x, y)) {
         y++;
     }
-
-    DrawSidebar(nextPieces, nextPieceIndex);
 }
 
 void Player::moveLateral(int direction)
@@ -147,6 +150,7 @@ void Player::rotate()
         if (nextBlocks[i][1] < minY) minY = nextBlocks[i][1];
     }
 
+    int edgeDiff = 0;
     for (int i = 0; i < 4; i++)
     {
         if (minX < 0) nextBlocks[i][0] -= minX;
@@ -155,8 +159,31 @@ void Player::rotate()
         int nextX = x + nextBlocks[i][0];
         int nextY = y - nextBlocks[i][1];
 
-        if (nextY < 0 || nextX < 0 || nextX >= GRID_WIDTH || board[nextY][nextX] != BS_EMPTY)
+        if (nextY < 0 || nextX < 0 || board[nextY][nextX] != BS_EMPTY)
             return;
+
+        // Trick for moving if we're blocked by side
+        if ( nextX >= GRID_WIDTH && (nextX - (GRID_WIDTH - 1)) > edgeDiff)
+        {
+            edgeDiff = nextX - (GRID_WIDTH - 1);
+        }
+    }
+
+    if (edgeDiff != 0)
+    {
+        x -= edgeDiff;
+        for (int i = 0; i < 4; i++)
+        {
+            int nextX = x + nextBlocks[i][0];
+            int nextY = y - nextBlocks[i][1];
+
+            if (nextY < 0 || nextX < 0 || board[nextY][nextX] != BS_EMPTY)
+            {
+                x += edgeDiff;
+                return;
+            }
+
+        }
     }
 
     for (int i = 0; i < 4; i++)
@@ -167,14 +194,28 @@ void Player::rotate()
 
 }
 
+void Player::fastfall()
+{
+    while (!pieceShouldPlace(x, y, &currentPiece, &board)) moveDown();
+
+    moveDown();
+}
 void Player::Update(InputState is)
 {
     Uint64 tickStart = SDL_GetTicks();
 
     bool canMove = tickStart - lastMoveTime >= MOVE_DELAY;
+    bool canDrop = tickStart - lastDropTime >= DROP_DELAY;
     bool canRotate = tickStart - lastRotateTime >= MOVE_DELAY;
 
-   if (canMove && is.down)
+    if (canDrop && is.fastfall)
+    {
+        fastfall();
+        lastDropTime = tickStart;
+        return;
+    }
+
+    if (canMove && is.down)
     {
         moveDown();
         lastMoveTime = tickStart;
@@ -196,11 +237,37 @@ void Player::Update(InputState is)
         moveLateral(-1);
         lastMoveTime = tickStart;
     }
-    
+
     if (tickStart - lastFallTime >= FALL_DELAY)
     {
         moveDown();
         lastFallTime = tickStart;
+    }
+
+    if (is.swap && !swapUsed)
+    {
+        swapUsed = true;
+        if (swapPiece != -1)
+        {
+            currentPiece = PIECES[ swapPiece ];
+
+            int temp = currentPieceIndex;
+            currentPieceIndex = swapPiece;
+            swapPiece = temp;
+
+            x = 4;
+            y = GRID_HEIGHT - 1;
+
+            while (checkCollision(x, y))
+            {
+                y++;
+            }
+        }
+        else
+        {
+            swapPiece = currentPieceIndex;
+            spawnNewPiece();
+        }
     }
 }
 
@@ -216,11 +283,11 @@ void Player::Reset()
     x = 4;
     y = GRID_HEIGHT - 1;
 
-    currentPiece = PIECES[SDL_rand(PIECE_COUNT)];
+    currentPieceIndex = SDL_rand(PIECE_COUNT);
+    currentPiece = PIECES[currentPieceIndex];
     nextPieceIndex = 0;
     for (int i = 0; i < FUTURE_PIECES_COUNT; i++)
         nextPieces[i] = SDL_rand(PIECE_COUNT);
     
     board.ClearBoard();
-    DrawBoard(board);
 }

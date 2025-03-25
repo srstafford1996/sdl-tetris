@@ -4,34 +4,42 @@
 
 #define FALL_DELAY 500
 #define MOVE_DELAY 100
-#define DROP_DELAY 100
-#define ROTATE_DELAY 150
+#define DROP_DELAY 300
+#define ROTATE_DELAY 200
+
+class GameBoard;
+
+bool pieceShouldPlace(int x, int y, TetrisPiece *piece, GameBoard *board);
 
 class Player
 {
-    bool pieceShouldPlace();
     void movePieceDown();
 
     bool checkCollision(int x, int y);
     void spawnNewPiece();
     
+    void fastfall();
     void moveDown();
     void moveLateral(int direction);
     void rotate();  
 
 public:
     int x, y;
-    int nextPieceIndex;
+    int swapPiece, nextPieceIndex;
     int nextPieces[FUTURE_PIECES_COUNT];
 
     bool overflow;
+    bool swapUsed;
+
     GameBoard board;
+    int currentPieceIndex;
     TetrisPiece currentPiece;
 
-    Uint32 lastRotateTime;
-    Uint32 lastMoveTime;
-    Uint32 lastFallTime;
-    Uint32 lastMoveDownTime;
+    Uint64 lastRotateTime;
+    Uint64 lastMoveTime;
+    Uint64 lastFallTime;
+    Uint64 lastMoveDownTime;
+    Uint64 lastDropTime;
 
     void Update(InputState is);
     void Reset();
