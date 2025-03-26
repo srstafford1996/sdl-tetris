@@ -10,7 +10,7 @@
 #include "common.hpp"
 #include "board.hpp"
 
-Game::Game()
+Game::Game() 
 {
     LoadBlockTextures();
     
@@ -34,7 +34,7 @@ void Game::Update()
     SDL_PumpEvents();
     const bool *keys = SDL_GetKeyboardState(NULL);
 
-    InputState s = {keys[SDL_SCANCODE_LEFT], keys[SDL_SCANCODE_RIGHT], keys[SDL_SCANCODE_UP], keys[SDL_SCANCODE_DOWN], keys[SDL_SCANCODE_SPACE], keys[SDL_SCANCODE_LSHIFT]};
+    InputState s = {keys[SDL_SCANCODE_LEFT], keys[SDL_SCANCODE_RIGHT], keys[SDL_SCANCODE_UP], keys[SDL_SCANCODE_DOWN], keys[SDL_SCANCODE_SPACE], keys[SDL_SCANCODE_LSHIFT], keys[SDL_SCANCODE_ESCAPE]};
     player->Update(s);
 
     if (player->overflow)

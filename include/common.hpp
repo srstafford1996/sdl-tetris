@@ -67,6 +67,7 @@ struct InputState {
     bool down;
     bool fastfall;
     bool swap;
+    bool pause;
 };
 
 static const TetrisPiece PIECES[PIECE_COUNT] = {

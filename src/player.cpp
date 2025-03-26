@@ -1,6 +1,7 @@
 #include <SDL3/SDL.h>
 
 #include <cstdio>
+#include <cmath>
 
 #include "board.hpp"
 #include "player.hpp"
@@ -22,7 +23,8 @@ bool pieceShouldPlace(int x, int y, TetrisPiece *currentPiece, GameBoard *board)
 }
 
 Player::Player() : lastRotateTime(0), lastMoveTime(0), lastFallTime(0), lastMoveDownTime(0), x(4),
-    y(GRID_HEIGHT - 1), nextPieceIndex(0), overflow(0), swapUsed(0), swapPiece(-1)
+    y(GRID_HEIGHT - 1), nextPieceIndex(0), overflow(0), swapUsed(0),
+    swapPiece(-1), lastInputState{0}, lastInputPressTime{0}, paused(0), score(0), linesCleared(0)
 {
     currentPieceIndex = SDL_rand(PIECE_COUNT);
     currentPiece = PIECES[currentPieceIndex];
@@ -32,6 +34,34 @@ Player::Player() : lastRotateTime(0), lastMoveTime(0), lastFallTime(0), lastMove
 }
 
 
+void Player::parseInputState(Uint64 tickStart, InputState *is)
+{
+    InputState state = *is;
+
+    is->up = parseInput(lastInputState.up, is->up, tickStart, 0);
+    is->down = parseInput(lastInputState.down, is->down, tickStart, 1);
+    is->left = parseInput(lastInputState.left, is->left, tickStart, 2);
+    is->right = parseInput(lastInputState.right, is->right, tickStart, 3);
+    is->swap = parseInput(lastInputState.swap, is->swap, tickStart, 4);
+    is->fastfall = parseInput(lastInputState.fastfall, is->fastfall, tickStart, 5);
+    is->pause = parseInput(lastInputState.pause, is->pause, tickStart, 6);
+
+    lastInputState = state;
+}
+
+bool Player::parseInput(bool oldState, bool currState, Uint64 &tickStart, const Uint8 index)
+{
+    if (currState)
+    {
+        if (!oldState || (tickStart - lastInputPressTime[index] >= BUTTON_REPEAT_DELAY))
+        {
+            lastInputPressTime[index] = SDL_GetTicks();
+            return true;
+        }
+    }
+
+    return false;
+}
 
 void Player::moveDown()
 {
@@ -56,15 +86,24 @@ void Player::moveDown()
 
             board[blockY][x + currentPiece.blocks[i][0]] = (BlockState) currentPiece.color;
         }
-
+        
+        int lines = 0;
         for (int i = bottomRow; i <= topRow; i++)
         {
+
             if (board.RowIsFull(i))
             {
+                lines++;
                 board.DeleteRow(i);
                 topRow--;
                 i--;
             }
+        }
+
+        if(lines > 0)
+        {
+            linesCleared += lines;
+            score += std::pow(5, lines);
         }
 
         if (topRow >= GRID_HEIGHT)
@@ -72,8 +111,8 @@ void Player::moveDown()
             overflow = true;
             return;
         }
-        swapUsed = false;
 
+        swapUsed = false;
         spawnNewPiece();
     }
     else
@@ -203,6 +242,16 @@ void Player::fastfall()
 void Player::Update(InputState is)
 {
     Uint64 tickStart = SDL_GetTicks();
+
+    parseInputState(tickStart, &is);
+
+    if (is.pause)
+        paused = !paused;
+
+    if (paused)
+    {
+        return;
+    }
 
     bool canMove = tickStart - lastMoveTime >= MOVE_DELAY;
     bool canDrop = tickStart - lastDropTime >= DROP_DELAY;

@@ -132,8 +132,8 @@ void DrawSwapPiece(int pieceIndex)
 {
     if (pieceIndex == -1) return;
 
-    int pieceX = SIDEBAR_OFFSET;
-    int pieceY = NEXT_PIECE_PADDING;
+    float pieceX = SIDEBAR_OFFSET;
+    float pieceY = NEXT_PIECE_PADDING;
 
     SDL_FRect fullSquare = {
         pieceX,
@@ -156,8 +156,8 @@ void DrawSidebar(Player *player)
 
     DrawSwapPiece(player->swapPiece);
 
-    int pieceX = GRID_VIEW_WIDTH + GRID_X_OFFSET + SIDEBAR_OFFSET;
-    int pieceY = NEXT_PIECE_PADDING;
+    float pieceX = GRID_VIEW_WIDTH + GRID_X_OFFSET + SIDEBAR_OFFSET;
+    float pieceY = NEXT_PIECE_PADDING;
 
     SDL_FRect fullSquare = {
         pieceX,
